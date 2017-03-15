@@ -99,7 +99,7 @@ function configure()
         templates: {
             suggestion: Handlebars.compile(
                 "<div>" +
-                "TODO" +
+                "{{place_name}}, {{admin_name1}}, {{postal_code}}" +
                 "</div>"
             )
         }
