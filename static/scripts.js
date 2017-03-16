@@ -63,9 +63,46 @@ $(function() {
  */
 function addMarker(place)
 {
-    // TODO
+    // instantiate new marker
+    var marker = new  google.maps.Marker ({
+        icon: {
+            labelOrigin: new google.maps.Point(16, 40),
+            url: "https://maps.google.com/mapfiles/kml/pal2/icon31.png"
+        },
+        label : place.place_name + ", " + place.admin_name1,
+        position: new google.maps.LatLng(place.latitude, place.longitude),
+        map : map
+    });
+    // listen for click
+    google.maps.event.addListener(marker, "click", function() {
+        showInfo(marker);
+        
+        // get articles link through JSON
+        $.getJSON(Flask.url_for("articles"),
+        {geo : place.postal_code
+        }).done(function(data, textStatus, jqXHR) {
+            if (data.length == 0) {
+                showInfo(marker, "No news yet.");
+            }
+            else {
+                var ul = "<ul>";
+                var template = Handlebars.compile("<li><a href = '{{link}}' target='_blank'>{{title}}</a></li>");
+                for (var i = 0; i < data.length; i++) {
+                  ul += template({
+                          link : data[i].link,
+                          title : data[i].title
+                      })            }
+                ul += "</ul>";
+                showInfo(marker, ul);
+            }})
+       .fail(function(jqXHR, textStatus, errorThrown) {
+        console.log(errorThrown.toString())
+       })
+    });
+    
+    // add individual marker to markers[] array
+    markers.push(marker)
 }
-
 /**
  * Configures application.
  */
@@ -140,7 +177,11 @@ function configure()
  */
 function removeMarkers()
 {
-    // TODO
+    for (var i = 0; i < markers.length; i++)
+    {
+        markers[i].setMap(null);
+    }
+    markers.length = 0;
 }
 
 /**
@@ -228,4 +269,4 @@ function update()
         // log error to browser's console
         console.log(errorThrown.toString());
     });
-};
+}
